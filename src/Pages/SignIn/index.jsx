@@ -2,23 +2,20 @@ import { useForm } from "react-hook-form";
 import Layout from "../../Components/Layout";
 import { useLocalStorage } from "../../Hooks";
 import { Auth } from "../../Constants/Keys";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../../Context";
 
 function SignIn() {
-  const {
-    getItem: getUserCreds,
-    saveItem: saveUserCred,
-    clearItem: clearUserCred,
-  } = useLocalStorage(Auth.SAVED);
-  const { saveItem: saveLoggedIn } = useLocalStorage(Auth.LOGGED_IN);
-  const { getItem: getAllUsers } = useLocalStorage(Auth.ALL_USERS);
+  const { getItem: getUserCreds } = useLocalStorage(Auth.SAVED);
 
   const [savedCreds, setSavedCreds] = useState();
   const { register, handleSubmit } = useForm({
     defaultValues: { username: "", password: "", save: false },
     values: savedCreds,
   });
+
+  const { signIn } = useContext(UserContext);
 
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -33,25 +30,10 @@ function SignIn() {
     setSavedCreds({ ...localStorageCreds, save: true });
   }, [getUserCreds, savedCreds]);
 
-  const onSignIn = (data) => {
-    const allUsers = getAllUsers();
-    const match = allUsers.find(
-      (user) =>
-        user.password === data.password && user.username === data.username
-    );
-    if (!match) {
-      setErrorMessage("Wrong credentials");
-      return;
-    }
-
-    setErrorMessage("");
-    saveLoggedIn(match);
-    console.log(match);
-
-    navigate("/");
-
-    if (data.save) saveUserCred(data);
-    else clearUserCred();
+  const handleSignIn = (data) => {
+    const errorMessage = signIn(data);
+    if (errorMessage) setErrorMessage(errorMessage);
+    else navigate("/");
   };
 
   return (
@@ -59,14 +41,14 @@ function SignIn() {
       <div className="logIn_container">
         <form
           className="logIn_form flex flex-col gap-2 justify-end"
-          onSubmit={handleSubmit(onSignIn)}
+          onSubmit={handleSubmit(handleSignIn)}
         >
           <div className="inputGroup">
             <label
               className="block text-sm font-medium leading-6 text-gray-900"
               htmlFor="username"
             >
-              Username:{" "}
+              Username:
             </label>
             <input
               className="block w-full rounded-md border-0 p-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -102,7 +84,7 @@ function SignIn() {
               className="font-normal leading-4 text-sm text-gray-900"
               htmlFor="password"
             >
-              Save user{" "}
+              Save user
             </label>
           </div>
           <input
