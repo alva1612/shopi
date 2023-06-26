@@ -3,7 +3,7 @@ import Layout from "../../Components/Layout";
 import { useLocalStorage } from "../../Hooks";
 import { Auth } from "../../Constants/Keys";
 import { useEffect, useState } from "react";
-import { redirect, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function SignIn() {
   const {
